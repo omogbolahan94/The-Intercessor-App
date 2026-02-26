@@ -2,7 +2,7 @@
 function Navbar() {
   return (
     <nav className="bg-indigo-700 text-white p-4">
-      <span className="font-bold text-lg">🙏 PrayerConnect</span>
+      <span className="font-bold text-lg">🙏 The Intercessors</span>
     </nav>
   );
 }
