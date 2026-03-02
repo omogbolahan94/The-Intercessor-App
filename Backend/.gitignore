@@ -1,0 +1,12 @@
+venv/
+
+# Secrets — never commit this
+.env
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Alembic — we'll add this later
+*.pyc
