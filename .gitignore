@@ -22,3 +22,31 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# --- Existing Logs & Node ---
+node_modules/
+dist/
+*.log
+
+# --- Critical Security (Add these!) ---
+.env
+.env.local
+.env.*.local
+*.env
+# (Prevents accidentally pushing passwords/API keys to GitHub)
+
+# --- Backend Specifics ---
+# If using Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# If using Node/Express
+.npm
+/.cache
+
+# --- OS/Editor ---
+.DS_Store
+.vscode/
