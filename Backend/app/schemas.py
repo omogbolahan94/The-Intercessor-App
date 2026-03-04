@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime
 from typing import Optional
 from app.models import PrayerStatus
@@ -10,9 +10,19 @@ from app.models import PrayerStatus
 # Data required to register a new user
 class UserRegister(BaseModel):
     name:     str
-    email:    EmailStr   # Pydantic validates this is a real email format
+    email:    EmailStr
     password: str
     location: Optional[str] = None
+
+    # Validates password length before it ever reaches bcrypt
+    @field_validator("password")
+    @classmethod
+    def password_length(cls, v):
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters.")
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("Password must not exceed 72 characters.")
+        return v
 
 # Data required to log in
 class UserLogin(BaseModel):
