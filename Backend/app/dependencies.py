@@ -27,11 +27,9 @@ def get_current_user(
 
     # Extract the token from the credentials object
     token = credentials.credentials
-    print(f"🔑 Received token: {token[:30]}...")  # Debug log
 
     # Decode the token
     payload = decode_access_token(token)
-    print(f"📦 Decoded payload: {payload}")       # Debug log
 
     if payload is None:
         raise credentials_exception
@@ -49,5 +47,4 @@ def get_current_user(
     if user is None:
         raise credentials_exception
 
-    print(f"✅ Authenticated user: {user.email}") # Debug log
     return user

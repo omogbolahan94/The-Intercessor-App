@@ -60,6 +60,4 @@ def decode_access_token(token: str) -> Optional[dict]:
         )
         return payload
     except JWTError as e:
-        # Print the error so we can see what's going wrong
-        print(f"❌ JWT decode error: {e}")
         return None
