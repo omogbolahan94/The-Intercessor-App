@@ -13,17 +13,13 @@ router = APIRouter(
 )
 
 # ── Initialise the Groq client ──
-# Reads GROQ_API_KEY automatically from your .env file
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ── Model to use ──
-# llama-3.3-70b-versatile is Groq's best free model
-# It has strong Bible knowledge and follows instructions well
 MODEL = "llama-3.3-70b-versatile"
 
 # ── Fallback scripture ──
 # Returned if the AI call fails for any reason
-# Ensures the endpoint never returns an empty response
 FALLBACK_SCRIPTURE = {
     "verse":     "Philippians 4:6-7",
     "text":      "Do not be anxious about anything, but in every situation, "
