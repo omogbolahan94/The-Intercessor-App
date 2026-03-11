@@ -64,6 +64,14 @@ function Navbar() {
                 Home
               </Link>
 
+              <Link to="/about"
+                className={`text-sm font-medium transition-colors duration-200
+                  ${isActive("/about")
+                    ? "text-[#7C3AED]"
+                    : "text-[#52525B] hover:text-[#18181B]"}`}>
+                About
+              </Link>
+
               {user && (
                 <>
                   <Link to="/dashboard"

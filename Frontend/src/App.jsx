@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // --- Page imports (we will create these files one by one) ---
 import Home from "./pages/Home";
+import About from "./pages/About";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -24,6 +25,7 @@ function App() {
         <Routes>
           {/* Public routes — anyone can visit these */}
           <Route path="/"         element={<Home />} />
+          <Route path="/about" element={<About />} />
           <Route path="/login"    element={<Login />} />
           <Route path="/register" element={<Register />} />
 
