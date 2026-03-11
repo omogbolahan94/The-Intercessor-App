@@ -1,24 +1,46 @@
+/* New changes */
+
 @import "tailwindcss";
 
-/* ── Override browser default blue focus ring globally ── 
-   Targets all inputs, selects and textareas across the app */
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ── Brand CSS Variables ── */
+:root {
+  --brand:        #7C3AED;   /* Primary purple */
+  --brand-light:  #EDE9FE;   /* Very light purple for subtle backgrounds */
+  --brand-dark:   #5B21B6;   /* Darker purple for hover states */
+  --text-primary: #18181B;   /* Near black for headings */
+  --text-body:    #52525B;   /* Medium gray for body text */
+  --text-muted:   #A1A1AA;   /* Light gray for hints and dates */
+  --border:       #E4E4E7;   /* Subtle border color */
+  --surface:      #FAFAFA;   /* Off-white for card backgrounds */
+}
+
+/* ── Base typography ── */
+body {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-body);
+  background: #ffffff;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* ── Focus ring override ── */
 input:focus,
 select:focus,
 textarea:focus {
   outline: none !important;
-  border-color: #7e22ce !important;   /* purple-700 */
-  box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.25) !important;  /* purple glow */
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
 }
 
-/* ── Override browser native select accent color ──
-   Affects the dropdown highlight/selection color */
-select {
-  accent-color: #7e22ce;  /* purple-700 */
-}
-
-/* ── Override browser native checkbox and radio accent ──
-   Keeps checkboxes (like the anonymous toggle) purple too */
 input[type="checkbox"],
 input[type="radio"] {
-  accent-color: #7e22ce;  /* purple-700 */
+  accent-color: var(--brand);
 }
