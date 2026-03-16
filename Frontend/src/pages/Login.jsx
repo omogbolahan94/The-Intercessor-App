@@ -84,8 +84,8 @@ function Login() {
           {/* Tagline */}
           <h2 style={{fontFamily: "'Cormorant Garamond', serif"}}
             className="text-white text-3xl font-semibold leading-snug">
-            Welcome back.<br />
-            <span className="text-white/60">The community is praying.</span>
+            <span className="text-white/60">Welcome back</span><br />
+            <span className="text-purple-500 text-sm">The community is praying</span>
           </h2>
         </div>
       </div>
