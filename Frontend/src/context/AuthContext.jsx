@@ -184,6 +184,16 @@ export function AuthProvider({ children }) {
     intercessions:    user?.stats?.intercessions_made  ?? 0,
   };
 
+  const refreshUser = async () => {
+    try {
+      const res = await api.get("/auth/me");
+      setUser(res.data);
+      setHasPrayers((res.data.stats?.prayers_submitted ?? 0) > 0);
+    } catch (err) {
+      console.error("Failed to refresh user", err);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -194,6 +204,7 @@ export function AuthProvider({ children }) {
       register,
       logout,
       markHasPrayers,
+      refreshUser,
     }}>
       {/* Don't render children until we know if user is logged in */}
       {!loading && children}

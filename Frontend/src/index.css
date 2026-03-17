@@ -1,20 +1,19 @@
-/* New changes */
-
-@import "tailwindcss";
-
-/* ── Google Fonts ── */
+/* ── Google Fonts must come FIRST before any other imports ── */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ── Tailwind ── */
+@import "tailwindcss";
 
 /* ── Brand CSS Variables ── */
 :root {
-  --brand:        #7C3AED;   /* Primary purple */
-  --brand-light:  #EDE9FE;   /* Very light purple for subtle backgrounds */
-  --brand-dark:   #5B21B6;   /* Darker purple for hover states */
-  --text-primary: #18181B;   /* Near black for headings */
-  --text-body:    #52525B;   /* Medium gray for body text */
-  --text-muted:   #A1A1AA;   /* Light gray for hints and dates */
-  --border:       #E4E4E7;   /* Subtle border color */
-  --surface:      #FAFAFA;   /* Off-white for card backgrounds */
+  --brand:        #7C3AED;
+  --brand-light:  #EDE9FE;
+  --brand-dark:   #5B21B6;
+  --text-primary: #18181B;
+  --text-body:    #52525B;
+  --text-muted:   #A1A1AA;
+  --border:       #E4E4E7;
+  --surface:      #FAFAFA;
 }
 
 /* ── Base typography ── */

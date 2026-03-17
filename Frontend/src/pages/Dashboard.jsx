@@ -1,295 +1,330 @@
-import { useAuth } from "../context/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { MOCK_MY_PRAYERS, MOCK_DAILY_SCRIPTURE } from "../data/mockdata";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import api from "../api/axios";
 
-// ─────────────────────────────────────────
-// STAT CARD COMPONENT
-// Displays a single personal stat (e.g. prayers submitted)
-// ─────────────────────────────────────────
-function StatCard({ icon, label, value, color }) {
+// ── Stat Card ──────────────────────────────────────────────
+function StatCard({ label, value, sub }) {
   return (
-    <div className={`bg-white rounded-2xl p-5 shadow-sm border 
-                     border-purple-100 flex items-center gap-4`}>
-      {/* Icon container — background colour passed as prop */}
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center 
-                       text-2xl flex-shrink-0 ${color}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-2xl font-extrabold text-purple-900">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
-      </div>
+    <div className="bg-white border border-[#E4E4E7] rounded-xl p-6
+                    hover:border-[#7C3AED]/30 hover:shadow-sm
+                    transition-all duration-200">
+      <p className="text-xs font-medium text-[#A1A1AA] uppercase
+                    tracking-widest mb-3">
+        {label}
+      </p>
+      <p style={{fontFamily: "'Cormorant Garamond', serif"}}
+        className="text-4xl font-semibold text-[#18181B] leading-none mb-1">
+        {value}
+      </p>
+      {sub && <p className="text-xs text-[#A1A1AA] mt-1">{sub}</p>}
     </div>
   );
 }
 
-// ─────────────────────────────────────────
-// SCRIPTURE CARD COMPONENT
-// Shows the daily scripture recommendation
-// ─────────────────────────────────────────
-function ScriptureCard({ scripture }) {
-  // Toggle to show/hide the AI reasoning behind the recommendation
+// ── Scripture Card ─────────────────────────────────────────
+function ScriptureCard({ scripture, loading }) {
   const [showReason, setShowReason] = useState(false);
 
-  return (
-    <div className="bg-gradient-to-br from-purple-700 to-purple-900 
-                    rounded-2xl p-6 text-white shadow-lg">
-
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">📖</span>
-          <p className="text-purple-200 text-xs font-semibold uppercase tracking-widest">
-            Your Daily Scripture
-          </p>
-        </div>
-        {/* Theme badge */}
-        <span className="bg-purple-600/60 text-purple-100 text-xs font-medium 
-                         px-3 py-1 rounded-full">
-          {scripture.theme}
-        </span>
+  if (loading) {
+    return (
+      <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-xl p-6
+                      animate-pulse">
+        <div className="h-3 bg-[#E4E4E7] rounded w-24 mb-4" />
+        <div className="h-4 bg-[#E4E4E7] rounded w-full mb-2" />
+        <div className="h-4 bg-[#E4E4E7] rounded w-3/4" />
       </div>
+    );
+  }
 
-      {/* Scripture text */}
-      <blockquote className="text-lg md:text-xl font-medium leading-relaxed 
-                             mb-4 border-l-4 border-purple-400 pl-4">
-        "{scripture.text}"
-      </blockquote>
+  if (!scripture) return null;
 
-      {/* Verse reference */}
-      <p className="text-purple-300 text-sm font-semibold mb-4">
-        — {scripture.verse}
+  return (
+    <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-xl p-6">
+      <p className="text-xs font-medium text-[#7C3AED] uppercase
+                    tracking-widest mb-4">
+        Your Daily Scripture
       </p>
-
-      {/* Toggle to see why this scripture was recommended */}
+      <div className="mb-4">
+        <p style={{fontFamily: "'Cormorant Garamond', serif"}}
+          className="text-xl font-medium text-[#18181B] italic
+                     leading-snug mb-2">
+          "{scripture.text}"
+        </p>
+        <p className="text-xs font-semibold text-[#7C3AED] uppercase
+                      tracking-wider">
+          {scripture.verse}
+        </p>
+      </div>
+      {scripture.theme && (
+        <p className="text-xs text-[#A1A1AA] mb-3">
+          Theme: <span className="text-[#52525B]">{scripture.theme}</span>
+        </p>
+      )}
       <button
         onClick={() => setShowReason(!showReason)}
-        className="text-xs text-purple-300 hover:text-white transition-colors 
-                   underline underline-offset-2"
-      >
-        {showReason ? "Hide" : "Why was this recommended for me?"}
+        className="text-xs font-medium text-[#52525B] hover:text-[#7C3AED]
+                   transition-colors underline">
+        {showReason ? "Hide" : "Why this was recommended"}
       </button>
-
-      {/* Reasoning — only visible when toggled */}
-      {showReason && (
-        <p className="mt-3 text-sm text-purple-200 bg-purple-800/50 
-                      rounded-xl p-3 leading-relaxed">
-          💡 {scripture.reasoning}
+      {showReason && scripture.reasoning && (
+        <p className="text-xs text-[#52525B] leading-relaxed mt-2
+                      bg-white border border-[#E4E4E7] rounded-lg p-3">
+          {scripture.reasoning}
         </p>
       )}
     </div>
   );
 }
 
-// ─────────────────────────────────────────
-// PRAYER REQUEST CARD COMPONENT
-// Shows a single prayer from the user's own list
-// ─────────────────────────────────────────
-function MyPrayerCard({ prayer }) {
-  const isAnswered = prayer.status === "answered";
+// ── Prayer Card ────────────────────────────────────────────
+function MyPrayerCard({ prayer, onStatusUpdate }) {
+  const [updating, setUpdating] = useState(false);
+
+  const handleMarkAnswered = async () => {
+    setUpdating(true);
+    try {
+      await api.put(`/prayers/${prayer.id}/status`, { status: "answered" });
+      onStatusUpdate(prayer.id, "answered");
+    } catch (err) {
+      console.error("Failed to update prayer status", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   return (
-    <div className={`bg-white rounded-2xl p-5 shadow-sm border transition-all 
-                     duration-200 hover:shadow-md
-                     ${isAnswered ? "border-green-200" : "border-purple-100"}`}>
-
-      {/* Title row with status badge */}
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <h4 className="font-semibold text-gray-800 text-sm leading-snug">
+    <div className="bg-white border border-[#E4E4E7] rounded-xl p-5
+                    hover:border-[#7C3AED]/30 hover:shadow-sm
+                    transition-all duration-200">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <h3 style={{fontFamily: "'Cormorant Garamond', serif"}}
+          className="text-lg font-semibold text-[#18181B] leading-snug">
           {prayer.title}
-        </h4>
-        {/* Status badge — green for answered, purple for active */}
-        <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 
-                          rounded-full ${isAnswered
-                            ? "bg-green-100 text-green-700"
-                            : "bg-purple-100 text-purple-700"}`}>
-          {isAnswered ? "✅ Answered" : "🙏 Active"}
+        </h3>
+        <span className={`flex-shrink-0 text-[11px] font-semibold px-2.5
+                          py-1 rounded-full uppercase tracking-wider
+                          ${prayer.status === "answered"
+                            ? "bg-green-50 text-green-600"
+                            : "bg-[#EDE9FE] text-[#7C3AED]"}`}>
+          {prayer.status}
         </span>
       </div>
 
-      {/* Prayer body — truncated to 2 lines */}
-      <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-3">
+      {/* Body */}
+      <p className="text-sm text-[#52525B] leading-relaxed mb-4 line-clamp-2">
         {prayer.body}
       </p>
 
-      {/* Footer row */}
-      <div className="flex items-center justify-between text-xs text-gray-400">
-        <span>{prayer.date}</span>
-        {/* How many people prayed for this */}
-        <span className="flex items-center gap-1">
-          🙏 <span className="font-medium text-purple-600">{prayer.prayerCount}</span> intercessions
-        </span>
+      {/* Meta */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-[#A1A1AA]">
+            {prayer.prayer_count ?? 0} interceding
+          </span>
+          <span className="text-xs text-[#A1A1AA]">
+            {prayer.category}
+          </span>
+        </div>
+        {prayer.status === "active" && (
+          <button
+            onClick={handleMarkAnswered}
+            disabled={updating}
+            className="text-xs font-medium text-[#7C3AED] border
+                       border-[#7C3AED]/30 px-3 py-1.5 rounded-lg
+                       hover:bg-[#EDE9FE] transition-colors
+                       disabled:opacity-50">
+            {updating ? "Updating..." : "Mark Answered ✓"}
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────
-// DASHBOARD PAGE — Main component
-// ─────────────────────────────────────────
+// ── Dashboard ──────────────────────────────────────────────
 function Dashboard() {
-  const { user, userStats } = useAuth();
-  const navigate            = useNavigate();
+  const { user, userStats, refreshUser}   = useAuth();
+  const navigate              = useNavigate();
+  const [prayers, setPrayers] = useState([]);
+  const [scripture, setScripture] = useState(null);
+  const [prayersLoading, setPrayersLoading]     = useState(true);
+  const [scriptureLoading, setScriptureLoading] = useState(true);
 
-  // Redirect to login if someone visits /dashboard without being logged in
-  // This is our basic route protection before we add a proper ProtectedRoute wrapper
+  // Redirect if not logged in
   useEffect(() => {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
-  // Don't render anything if user is null (prevents flash before redirect)
+  // Fetch user's own prayers
+  useEffect(() => {
+    if (!user) return;
+    api.get("/prayers/my-prayers")
+      .then((res) => setPrayers(res.data))
+      .catch((err) => console.error("Failed to fetch prayers", err))
+      .finally(() => setPrayersLoading(false));
+  }, [user]);
+
+  // Fetch daily scripture
+  useEffect(() => {
+    if (!user) return;
+    api.get("/scripture/daily")
+      .then((res) => setScripture(res.data))
+      .catch((err) => console.error("Failed to fetch scripture", err))
+      .finally(() => setScriptureLoading(false));
+  }, [user]);
+
+  // Update a prayer's status locally after marking answered
+  const handleStatusUpdate = (prayerId, newStatus) => {
+    // Update the prayer card locally immediately
+    setPrayers((prev) =>
+      prev.map((p) => p.id === prayerId ? { ...p, status: newStatus } : p)
+    );
+    // Re-fetch user stats so the answered count increments
+    refreshUser();
+  };
+
+  // Time-based greeting
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const activePrayers   = prayers.filter((p) => p.status === "active");
+  const answeredPrayers = prayers.filter((p) => p.status === "answered");
+
   if (!user) return null;
 
-  // Time-based greeting — changes depending on the hour
-  const hour     = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-
-  // Split into active and answered prayers for separate display
-  const activePrayers   = MOCK_MY_PRAYERS.filter((p) => p.status === "active");
-  const answeredPrayers = MOCK_MY_PRAYERS.filter((p) => p.status === "answered");
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 py-10">
+    <div className="bg-white min-h-screen">
+      <div className="max-w-6xl mx-auto px-6 py-12">
 
-        {/* ══════════════════════════════════════════
-            WELCOME HEADER
-        ══════════════════════════════════════════ */}
-        <div className="mb-10 flex flex-col sm:flex-row sm:items-center 
+        {/* ── Header ── */}
+        <div className="mb-10 flex flex-col md:flex-row md:items-end
                         justify-between gap-4">
           <div>
-            {/* Time-based greeting */}
-            <p className="text-sm text-purple-500 font-medium uppercase 
-                          tracking-widest mb-1">
-              {greeting}
+            <p className="text-xs font-medium text-[#7C3AED] uppercase
+                          tracking-widest mb-2">
+              Dashboard
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-purple-900">
-              {/* Show first name only */}
-              {user.name.split(" ")[0]} 👋
+            <h1 style={{fontFamily: "'Cormorant Garamond', serif"}}
+              className="text-4xl md:text-5xl font-semibold text-[#18181B]">
+              {getGreeting()},<br />{user.name.split(" ")[0]}
             </h1>
-            <p className="text-gray-500 mt-1 text-sm">
-              📍 {user.location}
-            </p>
           </div>
-
-          {/* Quick action buttons */}
-          <div className="flex gap-3 flex-wrap">
-            <Link
-              to="/prayer-feed"
-              className="bg-purple-700 hover:bg-purple-800 text-white text-sm 
-                         font-semibold px-5 py-2.5 rounded-full transition-colors 
-                         duration-200 shadow-md"
-            >
-              🌍 Prayer Feed
-            </Link>
-            <Link
-              to="/prayer-feed"
-              className="border-2 border-purple-700 text-purple-700 text-sm 
-                         font-semibold px-5 py-2.5 rounded-full hover:bg-purple-50 
-                         transition-colors duration-200"
-            >
-              + New Prayer
-            </Link>
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════
-            STATS ROW
-            Shows the user's personal activity at a glance
-        ══════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          <StatCard
-            icon="🙏"
-            label="Prayers Submitted"
-            value={userStats.prayersSubmitted}
-            color="bg-purple-100"
-          />
-          <StatCard
-            icon="🤝"
-            label="Prayers Interceded"
-            value={userStats.prayersInterceded}
-            color="bg-blue-100"
-          />
-          <StatCard
-            icon="✨"
-            label="Testimonies Shared"
-            value={userStats.testimoniesShared}
-            color="bg-green-100"
-          />
-        </div>
-
-        {/* ══════════════════════════════════════════
-            DAILY SCRIPTURE
-            Takes up full width — it's a priority feature
-        ══════════════════════════════════════════ */}
-        <div className="mb-10">
-          <ScriptureCard scripture={MOCK_DAILY_SCRIPTURE} />
-        </div>
-
-        {/* ══════════════════════════════════════════
-            MY PRAYER REQUESTS
-            Split into Active and Answered sections
-        ══════════════════════════════════════════ */}
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-purple-900">My Prayer Requests</h2>
-          <Link
-            to="/prayer-feed"
-            className="text-sm text-purple-600 hover:text-purple-800 
-                       font-medium transition-colors"
-          >
-            View all →
+          <Link to="/prayer-feed"
+            className="inline-flex items-center justify-center
+                       bg-[#7C3AED] hover:bg-[#5B21B6] text-white
+                       text-sm font-semibold px-6 py-2.5 rounded-lg
+                       transition-colors duration-200 self-start md:self-auto">
+            + New Prayer
           </Link>
         </div>
 
-        {/* Active prayers */}
-        {activePrayers.length > 0 && (
-          <div className="mb-6">
-            <p className="text-xs font-semibold text-gray-400 uppercase 
-                          tracking-widest mb-3">
-              Active
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {activePrayers.map((prayer) => (
-                <MyPrayerCard key={prayer.id} prayer={prayer} />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* ── Stats row ── */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+          <StatCard
+            label="Prayers Submitted"
+            value={userStats.prayersSubmitted}
+            sub="total requests"
+          />
+          <StatCard
+            label="Prayers Answered"
+            value={userStats.prayersAnswered}
+            sub="testimonies possible"
+          />
+          <StatCard
+            label="Intercessions Made"
+            value={userStats.intercessions}
+            sub="others prayed for"
+          />
+        </div>
 
-        {/* Answered prayers */}
+        {/* ── Daily Scripture ── */}
+        <div className="mb-10">
+          <ScriptureCard scripture={scripture} loading={scriptureLoading} />
+        </div>
+
+        {/* ── Active Prayers ── */}
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-5">
+            <h2 style={{fontFamily: "'Cormorant Garamond', serif"}}
+              className="text-2xl font-semibold text-[#18181B]">
+              Active Prayers
+            </h2>
+            <span className="text-xs text-[#A1A1AA]">
+              {activePrayers.length} request{activePrayers.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+
+          {prayersLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="bg-[#FAFAFA] border border-[#E4E4E7]
+                                          rounded-xl p-5 animate-pulse h-32" />
+                ))}
+              </div>
+            ) : prayers.length === 0 ? (
+              // No prayers at all — brand new user
+              <div className="border border-dashed border-[#E4E4E7] rounded-xl
+                              p-10 text-center">
+                <p className="text-sm text-[#A1A1AA] mb-3">
+                  You haven't submitted any prayer requests yet.
+                </p>
+                <Link to="/prayer-feed"
+                  className="text-sm font-medium text-[#7C3AED] hover:underline">
+                  Submit your first prayer →
+                </Link>
+              </div>
+            ) : activePrayers.length === 0 ? (
+              // Has prayers but all are answered
+              <div className="border border-dashed border-[#E4E4E7] rounded-xl
+                              p-10 text-center">
+                <p className="text-sm text-[#A1A1AA] mb-3">
+                  All your prayers have been answered. 🙏
+                </p>
+                <Link to="/prayer-feed"
+                  className="text-sm font-medium text-[#7C3AED] hover:underline">
+                  Submit a new prayer →
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {activePrayers.map((prayer) => (
+                  <MyPrayerCard
+                    key={prayer.id}
+                    prayer={prayer}
+                    onStatusUpdate={handleStatusUpdate}
+                  />
+                ))}
+              </div>
+            )}
+        </div>
+
+        {/* ── Answered Prayers ── */}
         {answeredPrayers.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase 
-                          tracking-widest mb-3">
-              Answered 🎉
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between mb-5">
+              <h2 style={{fontFamily: "'Cormorant Garamond', serif"}}
+                className="text-2xl font-semibold text-[#18181B]">
+                Answered Prayers
+              </h2>
+              <span className="text-xs text-[#A1A1AA]">
+                {answeredPrayers.length} answered
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {answeredPrayers.map((prayer) => (
-                <MyPrayerCard key={prayer.id} prayer={prayer} />
+                <MyPrayerCard
+                  key={prayer.id}
+                  prayer={prayer}
+                  onStatusUpdate={handleStatusUpdate}
+                />
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Empty state — shown if user has no prayers yet */}
-        {MOCK_MY_PRAYERS.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl border 
-                          border-purple-100 shadow-sm">
-            <p className="text-4xl mb-3">🕊️</p>
-            <p className="text-lg font-semibold text-gray-600">
-              You haven't submitted any prayers yet.
-            </p>
-            <p className="text-sm text-gray-400 mt-1 mb-6">
-              Share your first request with the community.
-            </p>
-            <Link
-              to="/prayer-feed"
-              className="bg-purple-700 hover:bg-purple-800 text-white font-semibold 
-                         px-8 py-2.5 rounded-full transition-colors duration-200 text-sm"
-            >
-              Submit a Prayer Request
-            </Link>
           </div>
         )}
 
