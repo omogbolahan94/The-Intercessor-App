@@ -5,8 +5,9 @@ import Register     from "./pages/Register";
 import Dashboard    from "./pages/Dashboard";
 import PrayerFeed   from "./pages/PrayerFeed";
 import About        from "./pages/About";
-import Testimonies  from "./pages/Testimonies";   // ← ADD
+import Testimonies  from "./pages/Testimonies";  
 import Navbar       from "./components/Navbar";
+import Footer      from "./components/Footer"; 
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           } />
         </Routes>
       </main>
+      <Footer />   
     </BrowserRouter>
   );
 }

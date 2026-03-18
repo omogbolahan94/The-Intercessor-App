@@ -810,32 +810,6 @@ function About() {
           </div>
         </div>
       </section>
-
-      {/* ══════════════════════════════════════════
-          FOOTER
-      ══════════════════════════════════════════ */}
-      <footer className="border-t border-[#E4E4E7] py-8 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row
-                        items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <svg viewBox="0 0 28 28" fill="none"
-              className="w-5 h-5 text-[#7C3AED]">
-              <rect x="12" y="2" width="4" height="24" rx="1.5"
-                fill="currentColor"/>
-              <rect x="4" y="9" width="20" height="4" rx="1.5"
-                fill="currentColor"/>
-            </svg>
-            <span style={{fontFamily: "'Cormorant Garamond', serif"}}
-              className="text-sm font-medium text-[#18181B]">
-              The Intercessors
-            </span>
-          </div>
-          <p className="text-xs text-[#A1A1AA]">
-            © {new Date().getFullYear()} The Intercessors. Built with faith & love.
-          </p>
-        </div>
-      </footer>
-
     </div>
   );
 }
