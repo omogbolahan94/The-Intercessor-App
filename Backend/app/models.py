@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Column, Integer, String, Text,
-    Boolean, DateTime, ForeignKey, Enum
+    Boolean, DateTime, Date, ForeignKey, Enum
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -24,6 +24,8 @@ class User(Base):
     id           = Column(Integer, primary_key=True, index=True)
     name         = Column(String(100), nullable=False)
     email        = Column(String(255), unique=True, index=True, nullable=False)
+    date_of_birth  = Column(Date, nullable=True)  
+
     # We never store plain passwords — only hashed versions
     password     = Column(String(255), nullable=False)
     location     = Column(String(100), nullable=True)
@@ -34,6 +36,7 @@ class User(Base):
     # These let us do things like user.prayers to get all their prayers
     prayers      = relationship("Prayer",      back_populates="author")
     testimonies  = relationship("Testimony",   back_populates="author")
+    messages = relationship("Message", back_populates="author")
     intercessions = relationship("Intercession", back_populates="user")
 
 
@@ -67,6 +70,8 @@ class Prayer(Base):
     author       = relationship("User", back_populates="prayers")
     intercessions = relationship("Intercession", back_populates="prayer",
                                  cascade="all, delete-orphan")
+    messages = relationship("Message", back_populates="prayer",
+            cascade="all, delete-orphan")
 
     # ── Property: count how many people have prayed for this ──
     # We can access this as prayer.prayer_count in our code
@@ -114,3 +119,30 @@ class Testimony(Base):
 
     # ── Relationship ──
     author = relationship("User", back_populates="testimonies")
+
+
+# ══════════════════════════════════════════
+# MESSAGE
+# Users can interact
+# ══════════════════════════════════════════
+class MessageType(str, enum.Enum):
+    text     = "text"
+    verse    = "verse"
+    reaction = "reaction"
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    prayer_id    = Column(Integer, ForeignKey("prayers.id",
+                    ondelete="CASCADE"), nullable=False, index=True)
+    user_id      = Column(Integer, ForeignKey("users.id",
+                    ondelete="CASCADE"), nullable=False)
+    content      = Column(String(1000), nullable=False)
+    message_type = Column(String(20), default="text", nullable=False)
+    created_at   = Column(DateTime(timezone=True),
+                    server_default=func.now())
+
+    # Relationships
+    author = relationship("User",   back_populates="messages")
+    prayer = relationship("Prayer", back_populates="messages")

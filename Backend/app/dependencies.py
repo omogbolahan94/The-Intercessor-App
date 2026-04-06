@@ -11,10 +11,8 @@ from app import models
 security = HTTPBearer()
 
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db:          Session                      = Depends(get_db)
-) -> models.User:
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), 
+                     db: Session = Depends(get_db) ) -> models.User:
     """
     Reads the Bearer token from the Authorization header,
     decodes it and returns the matching user from the database.

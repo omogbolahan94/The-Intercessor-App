@@ -46,6 +46,7 @@ def register(user_data: schemas.UserRegister, db: Session = Depends(get_db)):
         email    = user_data.email,
         password = hashed,
         location = user_data.location,
+        date_of_birth = user_data.date_of_birth,
     )
     db.add(new_user)
     db.commit()
@@ -113,9 +114,7 @@ def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
 # Returns the logged-in user's profile + stats
 # ══════════════════════════════════════════
 @router.get("/me", response_model=schemas.UserWithStats)
-def get_me(
-    current_user: models.User = Depends(get_current_user),
-    db: Session               = Depends(get_db)
+def get_me(current_user: models.User=Depends(get_current_user), db: Session=Depends(get_db)
 ):
     """
     Returns the logged-in user's profile and stats.

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, field_validator
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, List
 from app.models import PrayerStatus
 
@@ -11,6 +11,7 @@ class UserRegister(BaseModel):
     email:    EmailStr
     password: str
     location: Optional[str] = None
+    date_of_birth: Optional[date] = None
 
     @field_validator("password")
     @classmethod
@@ -31,6 +32,7 @@ class UserResponse(BaseModel):
     email:      str
     location:   Optional[str]
     created_at: datetime
+    date_of_birth: Optional[date]     = None
 
     class Config:
         from_attributes = True
@@ -145,3 +147,37 @@ class ScriptureResponse(BaseModel):
     text:      str
     theme:     str
     reasoning: str
+
+
+# ══════════════════════════════════════════
+# ── Message Schemas ───────────────────────
+# ══════════════════════════════════════════
+class MessageCreate(BaseModel):
+    content:      str
+    message_type: str = "text"   # text | verse | reaction
+
+    @field_validator("content")
+    def content_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError("Message cannot be empty")
+        if len(v) > 1000:
+            raise ValueError("Message too long")
+        return v.strip()
+
+    @field_validator("message_type")
+    def valid_type(cls, v):
+        if v not in ["text", "verse", "reaction"]:
+            raise ValueError("Invalid message type")
+        return v
+
+class MessageResponse(BaseModel):
+    id:           int
+    prayer_id:    int
+    user_id:      int
+    content:      str
+    message_type: str
+    created_at:   datetime
+    author_name:  str
+
+    class Config:
+        from_attributes = True
