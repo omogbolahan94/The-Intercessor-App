@@ -136,25 +136,29 @@ export function AuthProvider({ children }) {
 
   // ── Login ──────────────────────────────────────────────────
   const login = async (email, password) => {
-    const res = await api.post("/auth/login", { email, password });
-    const { access_token, ...userData } = res.data;
-
-    // Store token so future requests are authenticated
-    localStorage.setItem("token", access_token);
-
-    // Fetch full user profile (includes stats)
-    const profileRes = await api.get("/auth/me");
-    setUser(profileRes.data);
-    setHasPrayers((profileRes.data.stats?.prayers_submitted ?? 0) > 0);
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      const { access_token } = res.data;
+      localStorage.setItem("token", access_token);
+      const profileRes = await api.get("/auth/me");
+      setUser(profileRes.data);
+      setHasPrayers((profileRes.data.stats?.prayers_submitted ?? 0) > 0);
+    } catch (err) {
+      // Re-throw with a small delay so React fully commits
+      // the loading=false render before the error render
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      throw err;
+    }
   };
 
   // ── Register ───────────────────────────────────────────────
-  const register = async (name, email, password, location) => {
+  const register = async (name, email, password, location, date_of_birth = null) => {
     const res = await api.post("/auth/register", {
       name,
       email,
       password,
       location,
+      date_of_birth,
     });
     const { access_token } = res.data;
 

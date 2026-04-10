@@ -28,6 +28,7 @@ function Register() {
   const [location, setLocation]         = useState("");
   const [password, setPassword]         = useState("");
   const [confirmPassword, setConfirm]   = useState("");
+  const [dob, setDob]                   = useState("");
   const [error, setError]               = useState("");
   const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -61,7 +62,7 @@ function Register() {
     }
     setLoading(true);
     try {
-      await register(name, email, password, location);
+      await register(name, email, password, location, dob || null);
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.");
@@ -308,6 +309,30 @@ function Register() {
                   </svg>
                 </div>
               </div>
+            </div>
+
+            {/* Date of Birth — optional */}
+            <div>
+              <label className="block text-xs font-semibold text-[#18181B]
+                                uppercase tracking-wider mb-2">
+                Date of Birth{" "}
+                <span className="text-[#A1A1AA] normal-case font-normal
+                                tracking-normal">
+                  (optional)
+                </span>
+              </label>
+              <input
+                type="date"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+                className="w-full border border-[#E4E4E7] rounded-lg px-4 py-3
+                          text-sm text-[#18181B] bg-white
+                          transition-colors duration-200 cursor-pointer"
+              />
+              <p className="text-[11px] text-[#A1A1AA] mt-1">
+                We use this to personalise your experience. Never shared publicly.
+              </p>
             </div>
 
             {/* Password */}

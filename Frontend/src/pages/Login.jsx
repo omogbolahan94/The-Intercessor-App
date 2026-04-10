@@ -3,23 +3,24 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 function Login() {
-  const { login }                   = useAuth();
-  const navigate                    = useNavigate();
-  const [email, setEmail]           = useState("");
-  const [password, setPassword]     = useState("");
-  const [error, setError]           = useState("");
-  const [loading, setLoading]       = useState(false);
+  const { login }                       = useAuth();
+  const navigate                        = useNavigate();
+  const [email, setEmail]               = useState("");
+  const [password, setPassword]         = useState("");
+  const [error, setError]               = useState("");
+  const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    // Do NOT call setError("") here — that's what causes the flash
     setLoading(true);
     try {
       await login(email, password);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.message || "Invalid email or password. Please try again.");
+      setPassword("");
+      setError("Incorrect password. Please check and try again.");
     } finally {
       setLoading(false);
     }
@@ -29,24 +30,23 @@ function Login() {
     <div className="min-h-screen flex">
 
       {/* ══════════════════════════════════════════
-          LEFT PANEL — Dark atmospheric side
+          LEFT PANEL
       ══════════════════════════════════════════ */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#18181B] flex-col
-                      justify-between overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-[#18181B]
+                      flex-col justify-between overflow-hidden">
 
-        {/* Background image with overlay */}
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=900&q=80"
             alt=""
             className="w-full h-full object-cover opacity-30"
           />
-          {/* Dark gradient top to bottom */}
           <div className="absolute inset-0 bg-gradient-to-b
-                          from-[#18181B]/60 via-transparent to-[#18181B]/90" />
+                          from-[#18181B]/60 via-transparent
+                          to-[#18181B]/90" />
         </div>
 
-        {/* Brand mark — top left */}
+        {/* Brand mark */}
         <div className="relative z-10 p-10">
           <Link to="/" className="flex items-center gap-2.5">
             <svg viewBox="0 0 28 28" fill="none"
@@ -63,14 +63,13 @@ function Login() {
           </Link>
         </div>
 
-        {/* Bottom content — scripture + tagline */}
+        {/* Bottom content */}
         <div className="relative z-10 p-10">
-
-          {/* Scripture card */}
           <div className="bg-white/10 backdrop-blur-sm border border-white/20
                           rounded-2xl p-6 mb-8">
             <p style={{fontFamily: "'Cormorant Garamond', serif"}}
-              className="text-white text-xl font-medium italic leading-snug mb-3">
+              className="text-white text-xl font-medium italic
+                         leading-snug mb-3">
               "Do not be anxious about anything, but in every situation,
               by prayer and petition, with thanksgiving, present your
               requests to God."
@@ -81,17 +80,18 @@ function Login() {
             </p>
           </div>
 
-          {/* Tagline */}
           <h2 style={{fontFamily: "'Cormorant Garamond', serif"}}
             className="text-white text-3xl font-semibold leading-snug">
             <span className="text-white/60">Welcome back</span><br />
-            <span className="text-purple-500 text-sm">The community is praying</span>
+            <span className="text-purple-500 text-sm">
+              The community is praying
+            </span>
           </h2>
         </div>
       </div>
 
       {/* ══════════════════════════════════════════
-          RIGHT PANEL — Clean white form
+          RIGHT PANEL
       ══════════════════════════════════════════ */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center
                       px-8 sm:px-16 py-12 bg-white">
@@ -130,17 +130,28 @@ function Login() {
             </p>
           </div>
 
-          {/* Error message */}
+          {/* ── Error message — only shown when error exists ── */}
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg
-                            px-4 py-3 flex items-start gap-3">
+            <div className="mb-6 bg-red-50 border border-red-300
+                            rounded-lg px-4 py-4 flex items-start gap-3">
+              <div className="w-1 self-stretch bg-red-400 rounded-full
+                              flex-shrink-0 -ml-1 mr-1" />
               <svg className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18
+                     0 9 9 0 0118 0z"/>
               </svg>
-              <p className="text-sm text-red-600">{error}</p>
+              <div>
+                <p className="text-sm font-semibold text-red-600">
+                  Incorrect password
+                </p>
+                <p className="text-xs text-red-500 mt-0.5">
+                  Your email is correct. Please check your password
+                  and try again.
+                </p>
+              </div>
             </div>
           )}
 
@@ -159,8 +170,9 @@ function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full border border-[#E4E4E7] rounded-lg px-4 py-3
-                           text-sm text-[#18181B] placeholder:text-[#A1A1AA]
+                className="w-full border border-[#E4E4E7] rounded-lg
+                           px-4 py-3 text-sm text-[#18181B]
+                           placeholder:text-[#A1A1AA]
                            transition-colors duration-200"
               />
             </div>
@@ -173,7 +185,8 @@ function Login() {
                   Password
                 </label>
                 <button type="button"
-                  className="text-xs text-[#7C3AED] hover:underline font-medium">
+                  className="text-xs text-[#7C3AED] hover:underline
+                             font-medium">
                   Forgot password?
                 </button>
               </div>
@@ -182,45 +195,54 @@ function Login() {
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    // Clear error only when user starts typing
+                    // a new password — not on submit
+                    if (error) setError("");
+                  }}
                   placeholder="••••••••"
-                  className="w-full border border-[#E4E4E7] rounded-lg px-4 py-3
-                             pr-11 text-sm text-[#18181B]
-                             placeholder:text-[#A1A1AA]
-                             transition-colors duration-200"
+                  className={`w-full border rounded-lg px-4 py-3 pr-11
+                              text-sm text-[#18181B]
+                              placeholder:text-[#A1A1AA]
+                              transition-colors duration-200
+                              ${error
+                                ? "border-red-300 bg-red-50"
+                                : "border-[#E4E4E7]"}`}
                 />
                 {/* Show/hide toggle */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2
-                             text-[#A1A1AA] hover:text-[#52525B] transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                             text-[#A1A1AA] hover:text-[#52525B]
+                             transition-colors"
+                  aria-label={showPassword ? "Hide" : "Show"}
                 >
                   {showPassword ? (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
+                    <svg className="w-4 h-4" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round"
                         strokeWidth={1.5}
                         d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478
-                           0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029
-                           m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242
-                           4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29
-                           M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0
-                           8.268 2.943 9.543 7a10.025 10.025 0 01-4.132
-                           5.411m0 0L21 21" />
+                           0-8.268-2.943-9.543-7a9.97 9.97 0 011.563
+                           -3.029m5.858.908a3 3 0 114.243 4.243M9.878
+                           9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532
+                           7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953
+                           9.953 0 0112 5c4.478 0 8.268 2.943 9.543
+                           7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
+                    <svg className="w-4 h-4" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round"
                         strokeWidth={1.5}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                       <path strokeLinecap="round" strokeLinejoin="round"
                         strokeWidth={1.5}
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0
-                           8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542
-                           7-4.477 0-8.268-2.943-9.542-7z" />
+                           8.268 2.943 9.542 7-1.274 4.057-5.064
+                           7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
                   )}
                 </button>
@@ -241,8 +263,8 @@ function Login() {
                 <>
                   <svg className="w-4 h-4 animate-spin" fill="none"
                     viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10"
-                      stroke="currentColor" strokeWidth="4"/>
+                    <circle className="opacity-25" cx="12" cy="12"
+                      r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                   </svg>
@@ -272,7 +294,8 @@ function Login() {
           </Link>
 
           {/* Footer note */}
-          <p className="text-xs text-[#A1A1AA] text-center mt-8 leading-relaxed">
+          <p className="text-xs text-[#A1A1AA] text-center mt-8
+                        leading-relaxed">
             By signing in you agree to our{" "}
             <span className="text-[#52525B] hover:text-[#18181B]
                              cursor-pointer transition-colors">

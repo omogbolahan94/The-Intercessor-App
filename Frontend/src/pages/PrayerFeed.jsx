@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import ChatPanel from "../components/ChatPanel";
 import api from "../api/axios";
 
 const CATEGORIES = [
@@ -210,7 +211,7 @@ function SubmitPrayerModal({ onClose, onSubmit }) {
 }
 
 // ── Prayer Card ────────────────────────────────────────────
-function PrayerCard({ prayer, onIntercede, currentUserId }) {
+function PrayerCard({ prayer, onIntercede, currentUserId, onOpenChat }) {
   const [interceding, setInterceding] = useState(false);
   const hasInterceded = prayer.has_interceded ?? false;
   const isOwner       = prayer.user_id === currentUserId;
@@ -302,9 +303,32 @@ function PrayerCard({ prayer, onIntercede, currentUserId }) {
       </div>
 
       {/* Prayer count */}
-      <p className="text-[11px] text-[#A1A1AA]">
-        {prayer.prayer_count ?? 0} believer{prayer.prayer_count !== 1 ? "s" : ""} interceding
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] text-[#A1A1AA]">
+          {prayer.prayer_count ?? 0} believer{prayer.prayer_count !== 1
+            ? "s" : ""} interceding
+        </p>
+
+        {/* Chat button — only visible to intercessors and owner */}
+        {currentUserId && (hasInterceded || isOwner) && (
+          <button
+            onClick={() => onOpenChat(prayer)}
+            className="flex items-center gap-1 text-xs text-[#52525B]
+                      hover:text-[#7C3AED] transition-colors duration-200"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03
+                  8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72
+                  C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9
+                  3.582 9 8z"/>
+            </svg>
+            Chat
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -315,6 +339,7 @@ function PrayerFeed() {
   const [prayers, setPrayers]       = useState([]);
   const [loading, setLoading]       = useState(true);
   const [showModal, setShowModal]   = useState(false);
+  const [activeChat, setActiveChat] = useState(null); // prayer object or null
   const [search, setSearch]         = useState("");
   const [category, setCategory]     = useState("All");
   const [location, setLocation]     = useState("All Regions");
@@ -480,6 +505,7 @@ function PrayerFeed() {
                 prayer={prayer}
                 onIntercede={handleIntercede}
                 currentUserId={user?.id}
+                onOpenChat={setActiveChat}
               />
             ))}
           </div>
@@ -504,6 +530,13 @@ function PrayerFeed() {
         <SubmitPrayerModal
           onClose={() => setShowModal(false)}
           onSubmit={handleNewPrayer}
+        />
+      )}
+      {/* Chat panel — slides in from right */}
+      {activeChat && (
+        <ChatPanel
+          prayer={activeChat}
+          onClose={() => setActiveChat(null)}
         />
       )}
     </div>
